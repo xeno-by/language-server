@@ -14,14 +14,17 @@ object ReferencesProvider extends LazyLogging {
       position: l.Position,
       context: l.ReferenceContext
   ): ReferencesResult = {
-    val locations = for {
-      symbol <- symbolIndex
-        .findSymbol(path, position.line, position.character)
-        .toList
-      data <- symbolIndex.referencesData(symbol)
-      pos <- data.referencePositions(context.includeDeclaration)
-      _ = logger.info(s"Found reference ${pos.pretty} ${data.symbol}")
-    } yield pos.toLocation
+    logger.info("ReferencesProvider.references started")
+    val symbolOpt = symbolIndex
+      .findSymbol(path, position.line, position.character)
+      .toList
+    logger.info("symbolIndex.findSymbol done")
+    val data = symbolOpt.flatMap(symbol => symbolIndex.referencesData(symbol))
+    logger.info("symbolIndex.referencesData done")
+    val poses = data.flatMap(data => data.referencePositions(context.includeDeclaration))
+    logger.info("data.referencePositions done")
+    val locations = poses.map(_.toLocation)
+    logger.info("toLocation done")
     ReferencesResult(locations)
   }
 

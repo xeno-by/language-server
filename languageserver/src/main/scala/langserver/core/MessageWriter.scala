@@ -30,20 +30,25 @@ class MessageWriter(out: OutputStream) extends LazyLogging {
    * but it may block waiting for other threads to finish writing.
    */
   def write[T](msg: T, h: Map[String, String] = Map.empty)(implicit o: Format[T]): Unit = lock.synchronized {
+    logger.info("MessageWriter.write started")
     require(h.get(ContentLen).isEmpty)
 
     val str = Json.stringify(o.writes(msg))
+    logger.info("Json.stringify done")
     val contentBytes = str.getBytes(MessageReader.Utf8Charset)
     val headers = (h + (ContentLen -> contentBytes.length))
       .map { case (k, v) => s"$k: $v" }
       .mkString("", "\r\n", "\r\n\r\n")
 
-    logger.debug(s" --> $str")
+    // logger.debug(s" --> $str")
 
     val headerBytes = headers.getBytes(MessageReader.AsciiCharset)
 
     out.write(headerBytes)
+    logger.info("headerBytes done")
     out.write(contentBytes)
+    logger.info("contentBytes done")
     out.flush()
+    logger.info("flush done")
   }
 }
