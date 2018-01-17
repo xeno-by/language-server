@@ -142,7 +142,7 @@ class MessageReader(in: InputStream) extends LazyLogging {
       if (length > 0) {
         val content = getContent(length)
         if (content.isEmpty() && streamClosed) None else {
-          logger.debug(s"<--  $content")
+          logger.info(s"<--  $content")
           Some(content)
         }
       } else {
